@@ -1,12 +1,16 @@
 defmodule AlbionRoadWeb.TravelController do
   use AlbionRoadWeb, :controller
 
-  def show(conn, _params) do
+  alias AlbionRoad.Services.Travel
+
+  def show(conn, params) do
     with {:ok, body} <- File.read("priv/data/items.json"),
-         {:ok, json} <- Jason.decode(body) do
+         {:ok, _json} <- Jason.decode(body) do
+      response = Travel.call(params)
+
       conn
       |> put_status(:ok)
-      |> render("travel.json", json: json)
+      |> render("travel.json", json: response)
     end
   end
 end
