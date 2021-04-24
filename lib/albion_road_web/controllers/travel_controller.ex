@@ -1,11 +1,12 @@
 defmodule AlbionRoadWeb.TravelController do
   use AlbionRoadWeb, :controller
 
-  action_fallback FallbackController
-
-  def show(conn, params) do
-    conn
-    |> put_status(:ok)
-    |> render("travel.json", params: params)
+  def show(conn, _params) do
+    with {:ok, body} <- File.read("priv/data/items.json"),
+         {:ok, json} <- Jason.decode(body) do
+      conn
+      |> put_status(:ok)
+      |> render("travel.json", json: json)
+    end
   end
 end

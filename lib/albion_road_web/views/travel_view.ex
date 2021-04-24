@@ -1,7 +1,7 @@
-defmodule  AlbionRoadWeb.TravelView do
+defmodule AlbionRoadWeb.TravelView do
   use AlbionRoadWeb, :view
 
-  def render("travel.json", %{params: params}) do
-    %{params: params}
+  def render("travel.json", %{json: json}) do
+    %{json: json}
   end
 end

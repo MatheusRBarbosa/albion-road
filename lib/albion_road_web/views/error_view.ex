@@ -14,7 +14,10 @@ defmodule AlbionRoadWeb.ErrorView do
     Phoenix.Controller.status_message_from_template(template)
   end
 
-  def render("error.json", %{result: result}) do
-    %{error: result}
+  def render("error.json", %{result: result, status: status}) do
+    %{
+      status: status,
+      error: result
+    }
   end
 end
