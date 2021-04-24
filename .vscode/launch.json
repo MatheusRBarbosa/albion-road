@@ -1,0 +1,9 @@
+{
+    "type": "mix_task",
+    "request": "launch",
+    "name": "mix phx.server",
+    "task": "phx.server",
+    "taskArgs": [],
+    "projectDir": "${workspaceRoot}",
+    "preLaunchTask": "deps.compile"
+}

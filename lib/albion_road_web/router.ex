@@ -13,6 +13,12 @@ defmodule AlbionRoadWeb.Router do
     plug :accepts, ["json"]
   end
 
+  scope "/api", AlbionRoadWeb do
+    pipe_through :api
+
+    get "/travel/from/:from/to/:to", TravelController, :show
+  end
+
   scope "/", AlbionRoadWeb do
     pipe_through :browser
 

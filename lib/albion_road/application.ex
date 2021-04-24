@@ -8,7 +8,7 @@ defmodule AlbionRoad.Application do
   def start(_type, _args) do
     children = [
       # Start the Ecto repository
-      AlbionRoad.Repo,
+      # AlbionRoad.Repo,
       # Start the Telemetry supervisor
       AlbionRoadWeb.Telemetry,
       # Start the PubSub system
