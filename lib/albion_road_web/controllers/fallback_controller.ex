@@ -1,4 +1,4 @@
-defmodule AlbionRoad.FallbackController do
+defmodule AlbionRoadWeb.FallbackController do
   use AlbionRoadWeb, :controller
 
   alias AlbionRoadWeb.ErrorView
