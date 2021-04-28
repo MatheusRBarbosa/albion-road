@@ -27,16 +27,9 @@ defmodule AlbionRoad.Services.Travel do
     city["name"]
   end
 
-  defp handle_cities(from, to) when from != nil and to != nil do
-    %{"from" => from, "to" => to}
-  end
+  defp handle_cities(from, to) when from != nil and to != nil,
+    do: {:ok, result: %{"from" => from, "to" => to}}
 
-  defp handle_cities(from, to) when from == nil and to == nil,
-    do: %{"from" => "From city not found", "to" => "To city not found"}
-
-  defp handle_cities(from, to) when from == nil,
-    do: %{"from" => "From city not found", "to" => to}
-
-  defp handle_cities(from, to) when to == nil,
-    do: %{"from" => from, "to" => "To city not found"}
+  defp handle_cities(from, to) when from == nil or to == nil,
+    do: {:error, result: %{"from" => from, "to" => to}}
 end
