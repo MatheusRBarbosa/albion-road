@@ -1,5 +1,7 @@
 defmodule AlbionRoad.Services.TravelService do
-  alias AlbionRoad.Structs.TravelStruct
+  alias AlbionRoad.Structs.{PricesStruct, TravelStruct}
+  alias AlbionRoad.Services.HttpService
+  alias AlbionRoad.Helpers.MappableHelper
 
   @cities [
     %{"id" => 1, "name" => "thetford"},
@@ -10,11 +12,17 @@ defmodule AlbionRoad.Services.TravelService do
     %{"id" => 6, "name" => "caerleon"}
   ]
 
-  def call(%{"from" => from, "to" => to}) do
+  def handle_params(%{"from" => from, "to" => to}) do
     from_city = from |> String.trim() |> Integer.parse() |> find_city(from)
     to_city = to |> String.trim() |> Integer.parse() |> find_city(to)
 
     handle_cities(from_city, to_city)
+  end
+
+  def call(%TravelStruct{} = cities, items) do
+    # TODO: converter string json para struct corretamente
+    response = HttpService.get_prices(items)
+    {:ok, response}
   end
 
   defp find_city(id, param) when :error == id do
