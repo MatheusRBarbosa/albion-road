@@ -1,4 +1,6 @@
-defmodule AlbionRoad.Services.Travel do
+defmodule AlbionRoad.Services.TravelService do
+  alias AlbionRoad.Structs.TravelStruct
+
   @cities [
     %{"id" => 1, "name" => "thetford"},
     %{"id" => 2, "name" => "fortsterling"},
@@ -16,7 +18,6 @@ defmodule AlbionRoad.Services.Travel do
   end
 
   defp find_city(id, param) when :error == id do
-    city_name = param |> String.downcase()
     city = Enum.find(@cities, fn city -> city["name"] == param end)
     city["name"]
   end
@@ -28,8 +29,8 @@ defmodule AlbionRoad.Services.Travel do
   end
 
   defp handle_cities(from, to) when from != nil and to != nil,
-    do: {:ok, result: %{"from" => from, "to" => to}}
+    do: {:ok, %TravelStruct{from: from, to: to}}
 
   defp handle_cities(from, to) when from == nil or to == nil,
-    do: {:error, result: %{"from" => from, "to" => to}}
+    do: {:error, %TravelStruct{from: from, to: to}}
 end
