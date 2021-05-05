@@ -1,7 +1,6 @@
 defmodule AlbionRoad.Services.TravelService do
   alias AlbionRoad.Structs.{PricesStruct, TravelStruct}
   alias AlbionRoad.Services.HttpService
-  alias AlbionRoad.Helpers.MappableHelper
 
   @cities [
     %{"id" => 1, "name" => "thetford"},
@@ -20,9 +19,15 @@ defmodule AlbionRoad.Services.TravelService do
   end
 
   def call(%TravelStruct{} = cities, items) do
-    # TODO: converter string json para struct corretamente
-    response = HttpService.get_prices(items)
-    {:ok, response}
+    result =
+      HttpService.get_prices(cities, items)
+      |> Enum.reduce(fn res, acc -> res ++ acc end)
+
+    # TODO: Calcular valor medio e dos itens
+    # TODO: Ordernar pelo maior valor medio
+    # TODO: limitar a quantidade da resposta para os 50 primeiros
+
+    {:ok, result}
   end
 
   defp find_city(id, param) when :error == id do
