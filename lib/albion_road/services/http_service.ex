@@ -4,11 +4,10 @@ defmodule AlbionRoad.Services.HttpService do
   @base_url "https://www.albion-online-data.com/api/v2/"
   @prices_url @base_url <> "stats/prices/"
 
-  def get_prices(%TravelStruct{} = cities, items) do
+  def get_prices(%TravelStruct{} = cities, items, tier \\ 4) do
     response = Enum.map(items, fn item -> item["UniqueName"] end)
-    # TODO: Voltar filtro apenas para "T" quando estiver fazendo requests async
-    |> Enum.filter(fn item -> String.slice(item, 0..1) == "T8" end)
-    |> Enum.chunk_every(70)
+    |> Enum.filter(fn item -> String.slice(item, 0..1) == "T#{tier}" end)
+    |> Enum.chunk_every(100)
     |> Enum.map(fn chunk -> create_url(chunk, cities) end)
     |> Enum.map(fn request -> Task.async(fn -> HTTPoison.get(request) end) end)
     |> Enum.map(fn task -> handle_task_response(task) end)
