@@ -21,11 +21,11 @@ defmodule AlbionRoad.Services.TravelService do
   def call(%TravelStruct{} = cities, items) do
     result =
       HttpService.get_prices(cities, items)
-      |> Enum.reduce(fn res, acc -> res ++ acc end)
+      |> List.flatten()
+      |> Enum.take(25)
 
     # TODO: Calcular valor medio e dos itens
     # TODO: Ordernar pelo maior valor medio
-    # TODO: limitar a quantidade da resposta para os 50 primeiros
 
     {:ok, result}
   end
