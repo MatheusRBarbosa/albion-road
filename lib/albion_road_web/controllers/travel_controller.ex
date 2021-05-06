@@ -2,7 +2,7 @@ defmodule AlbionRoadWeb.TravelController do
   use AlbionRoadWeb, :controller
 
   alias AlbionRoad.Services.TravelService
-  alias AlbionRoad.Structs.{PricesStruct, TravelStruct}
+  alias AlbionRoad.Structs.{TravelStruct}
 
   def show(conn, params) do
     with {:ok, body} <- File.read("priv/data/items.json"),

@@ -22,7 +22,22 @@ defmodule AlbionRoad.Services.TravelService do
     result =
       HttpService.get_prices(cities, items)
       |> List.flatten()
-      |> Enum.take(25)
+      |> Enum.take(50)
+      |> Enum.map(fn item ->
+        %PricesStruct{
+          item_id: item["item_id"],
+          city: item["city"],
+          quality: item["quality"],
+          sell_price_min: item["sell_price_min"],
+          sell_price_min_date: item["sell_price_min_date"],
+          sell_price_max: item["sell_price_max"],
+          sell_price_max_date: item["sell_price_max_date"],
+          buy_price_min: item["buy_price_min"],
+          buy_price_min_date: item["buy_price_min_date"],
+          buy_price_max: item["buy_price_max"],
+          buy_price_max_date: item["buy_price_max_date"]
+        }
+      end)
 
     # TODO: Calcular valor medio e dos itens
     # TODO: Ordernar pelo maior valor medio
