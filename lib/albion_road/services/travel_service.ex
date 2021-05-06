@@ -1,5 +1,5 @@
 defmodule AlbionRoad.Services.TravelService do
-  alias AlbionRoad.Structs.{PricesStruct, TravelStruct}
+  alias AlbionRoad.Structs.{ItemsAvgStruct, PricesStruct, TravelStruct}
   alias AlbionRoad.Services.HttpService
 
   @cities [
@@ -22,7 +22,6 @@ defmodule AlbionRoad.Services.TravelService do
     result =
       HttpService.get_prices(cities, items)
       |> List.flatten()
-      |> Enum.take(50)
       |> Enum.map(fn item ->
         %PricesStruct{
           item_id: item["item_id"],
@@ -38,9 +37,10 @@ defmodule AlbionRoad.Services.TravelService do
           buy_price_max_date: item["buy_price_max_date"]
         }
       end)
-
-    # TODO: Calcular valor medio e dos itens
-    # TODO: Ordernar pelo maior valor medio
+      |> calc_profit()
+      |> Enum.filter(& !is_nil(&1))
+      |> Enum.sort(&(&1.avg_profit >= &2.avg_profit))
+      |> Enum.take(25)
 
     {:ok, result}
   end
@@ -54,6 +54,28 @@ defmodule AlbionRoad.Services.TravelService do
     id = elem(value, 0)
     city = Enum.find(@cities, fn city -> city["id"] == id end)
     city["name"]
+  end
+
+  defp calc_profit(items) do
+    Enum.map(items, fn %PricesStruct{} = i -> find_pair_and_calc(items, i) end)
+  end
+
+  defp find_pair_and_calc(items, %PricesStruct{} = item) do
+    pair_finded = Enum.find(items, fn %PricesStruct{} = i -> i.item_id == item.item_id end)
+    if pair_finded != nil do
+      avg_buy = (item.buy_price_min + item.buy_price_max)/2
+      avg_sell = (pair_finded.sell_price_min + pair_finded.sell_price_max)/2
+
+      if avg_buy != 0 and avg_sell != 0 do
+        avg_profit = avg_sell - avg_buy
+        %ItemsAvgStruct{
+          item_id: item.item_id,
+          avg_buy_price_from_city: avg_buy,
+          avg_sell_price_to_city: avg_sell,
+          avg_profit: avg_profit
+        }
+      end
+    end
   end
 
   defp handle_cities(from, to) when from != nil and to != nil,
