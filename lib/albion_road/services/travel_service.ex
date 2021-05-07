@@ -25,7 +25,7 @@ defmodule AlbionRoad.Services.TravelService do
       |> Enum.map(fn item ->
         %PricesStruct{
           item_id: item["item_id"],
-          city: item["city"],
+          city: String.downcase(item["city"]),
           quality: item["quality"],
           sell_price_min: item["sell_price_min"],
           sell_price_min_date: item["sell_price_min_date"],
@@ -37,11 +37,15 @@ defmodule AlbionRoad.Services.TravelService do
           buy_price_max_date: item["buy_price_max_date"]
         }
       end)
-      |> calc_profit(cities)
-      |> Enum.filter(& !is_nil(&1))
-      |> Enum.filter(&(&1.buy_in == cities.from))
+      |> Enum.chunk_every(2)
+      |> Enum.map(fn item_pair ->
+        order_by_city(List.first(item_pair), List.last(item_pair), cities)
+      end)
+      |> Enum.map(fn item_pair -> filter_item_pair(item_pair) end)
+      |> Enum.filter(&(!is_nil(&1)))
+      |> Enum.map(fn item_pair -> calc_profit(item_pair) end)
       |> Enum.sort(&(&1.avg_profit >= &2.avg_profit))
-      |> Enum.take(25)
+      |> Enum.take(20)
 
     {:ok, result}
   end
@@ -57,38 +61,47 @@ defmodule AlbionRoad.Services.TravelService do
     city["name"]
   end
 
-  defp calc_profit(items, %TravelStruct{} = cities) do
-    Enum.map(items, fn %PricesStruct{} = i -> find_pair_and_calc(items, i, cities) end)
+  defp order_by_city(
+         %PricesStruct{} = first_item,
+         %PricesStruct{} = second_item,
+         %TravelStruct{} = cities
+       )
+       when first_item.city == cities.from,
+       do: [first_item, second_item]
+
+  defp order_by_city(
+         %PricesStruct{} = first_item,
+         %PricesStruct{} = second_item,
+         %TravelStruct{} = cities
+       )
+       when second_item.city == cities.from,
+       do: [second_item, first_item]
+
+  defp filter_item_pair(item_pair) do
+    %PricesStruct{} = first = List.first(item_pair)
+    %PricesStruct{} = last = List.last(item_pair)
+    filter_zero_values(first, last)
   end
 
-  defp find_pair_and_calc(items, %PricesStruct{} = item, %TravelStruct{} = cities) do
-    pair_finded = Enum.find(items, fn %PricesStruct{} = i -> i.item_id == item.item_id end)
-    if pair_finded != nil do
-      match_item_city(item, pair_finded, String.downcase(item.city), cities)
-    end
+  defp calc_profit(item_pair) do
+    %PricesStruct{} = first = List.first(item_pair)
+    %PricesStruct{} = last = List.last(item_pair)
+    parse_item_avg(first, last)
   end
 
-  defp match_item_city(%PricesStruct{} = item, %PricesStruct{} = pair, item_city,  %TravelStruct{} = cities)
-    when item_city == cities.from,
-    do: parse_item_avg(item, pair, cities.from, cities.to)
-
-  defp match_item_city(%PricesStruct{} = item, %PricesStruct{} = pair, _item_city,  %TravelStruct{} = cities),
-    do: parse_item_avg(pair, item, cities.to, cities.from)
-
-  defp parse_item_avg(%PricesStruct{} = item_from, %PricesStruct{} = pair_to, from_city, to_city) do
-    avg_buy = (item_from.buy_price_min + item_from.buy_price_max)/2
-    avg_sell = (pair_to.sell_price_min + pair_to.sell_price_max)/2
-    if avg_buy != 0 and avg_sell != 0 do
+  defp parse_item_avg(%PricesStruct{} = item_from, %PricesStruct{} = item_to) do
+    avg_buy = (item_from.buy_price_min + item_from.buy_price_max) / 2
+    avg_sell = (item_to.sell_price_min + item_to.sell_price_max) / 2
     avg_profit = avg_sell - avg_buy
-      %ItemsAvgStruct{
-        item_id: item_from.item_id,
-        avg_buy_price_from_city: avg_buy,
-        avg_sell_price_to_city: avg_sell,
-        avg_profit: avg_profit,
-        buy_in: from_city,
-        sell_in: to_city
-      }
-    end
+
+    %ItemsAvgStruct{
+      item_id: item_from.item_id,
+      avg_buy_price: avg_buy,
+      avg_sell_price: avg_sell,
+      avg_profit: avg_profit,
+      buy_in: item_from.city,
+      sell_in: item_to.city
+    }
   end
 
   defp handle_cities(from, to) when from != nil and to != nil,
@@ -96,4 +109,13 @@ defmodule AlbionRoad.Services.TravelService do
 
   defp handle_cities(from, to) when from == nil or to == nil,
     do: {:error, %TravelStruct{from: from, to: to}}
+
+  defp filter_zero_values(%PricesStruct{} = first, %PricesStruct{} = last)
+       when first.buy_price_min > 1 and
+              first.buy_price_max > 1 and
+              last.sell_price_min > 1 and
+              last.sell_price_max > 2,
+       do: [first, last]
+
+  defp filter_zero_values(%PricesStruct{} = _first, %PricesStruct{} = _last), do: nil
 end

@@ -7,7 +7,7 @@ defmodule AlbionRoad.Services.HttpService do
   def get_prices(%TravelStruct{} = cities, items, tier \\ 4) do
     response = Enum.map(items, fn item -> item["UniqueName"] end)
     |> Enum.filter(fn item -> String.slice(item, 0..1) == "T#{tier}" end)
-    |> Enum.chunk_every(100)
+    |> Enum.chunk_every(80)
     |> Enum.map(fn chunk -> create_url(chunk, cities) end)
     |> Enum.map(fn request -> Task.async(fn -> HTTPoison.get(request) end) end)
     |> Enum.map(fn task -> handle_task_response(task) end)
