@@ -90,14 +90,12 @@ defmodule AlbionRoad.Services.TravelService do
   end
 
   defp parse_item_avg(%PricesStruct{} = item_from, %PricesStruct{} = item_to) do
-    avg_buy = (item_from.buy_price_min + item_from.buy_price_max) / 2
-    avg_sell = (item_to.sell_price_min + item_to.sell_price_max) / 2
-    avg_profit = avg_sell - avg_buy
+    avg_profit = item_to.sell_price_max - item_from.buy_price_max
 
     %ItemsAvgStruct{
       item_id: item_from.item_id,
-      avg_buy_price: avg_buy,
-      avg_sell_price: avg_sell,
+      avg_buy_price: item_from.buy_price_max,
+      avg_sell_price: item_to.sell_price_max,
       avg_profit: avg_profit,
       buy_in: item_from.city,
       sell_in: item_to.city
